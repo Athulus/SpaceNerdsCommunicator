@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.electromancy.max.spacenerdscommunicator.CommunicatorActivity">
+    <item
+        android:id="@+id/action_configure_ip"
+        android:orderInCategory="100"
+        android:title="@string/ip_settings"
+        app:showAsAction="never" />
+</menu>

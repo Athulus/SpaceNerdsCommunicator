@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SpaceNerdsCommunicator</string>
+    <string name="ip_settings">Update IP Address</string>
+    <string name="disconnectedText">disconnected from %s</string>
+    <string name="connectedText">connected to %s</string>
+    <string name="defaultConnectText">The Server has not tried to connect</string>
+    <string name="voiceTextDefault">voice will go here</string>
+</resources>
