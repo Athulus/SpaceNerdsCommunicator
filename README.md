@@ -9,4 +9,4 @@ a simple android app companion prototype for https://smcameron.github.io/space-n
 
 you can build this code with the included gradle wrapper.
 - with shell script `./gradlew build`
-- with batch script `gradlew.bat build`
+- with batch script `gradlew build`
