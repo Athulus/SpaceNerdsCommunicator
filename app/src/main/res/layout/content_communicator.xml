@@ -14,20 +14,13 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/serverStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Server connection status"
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-            android:textSize="24sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:typeface="monospace" />
-
-        <Switch
-            android:id="@+id/tcpSwitch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/defaultConnectText"
             android:typeface="monospace" />
 
         <TextView

@@ -3,6 +3,7 @@ package com.electromancy.max.spacenerdscommunicator;
 import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.design.widget.FloatingActionButton;
@@ -20,12 +21,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 
 public class CommunicatorActivity extends AppCompatActivity {
@@ -33,8 +37,6 @@ public class CommunicatorActivity extends AppCompatActivity {
     private InetAddress inetAddress = InetAddress.getByName("192.168.0.113");
     private int port = 8080;
     private  TextView voiceText;
-    private Switch tcpSwitch;
-    private Socket tcpSocket;
 
     public CommunicatorActivity() throws UnknownHostException {
     }
@@ -44,16 +46,14 @@ public class CommunicatorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_communicator);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        tcpSocket = new Socket();
+        TextView serverStatus = findViewById(R.id.serverStatus);
+        serverStatus.setText("Sending messages to " + inetAddress +":" + port);
 
-        tcpSwitch = findViewById(R.id.tcpSwitch);
-        tcpSwitch.setOnCheckedChangeListener(switchListener);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        voiceText = (TextView) findViewById(R.id.voiceText);
+        FloatingActionButton fab = findViewById(R.id.fab);
+        voiceText = findViewById(R.id.voiceText);
         fab.setOnClickListener(talkListener);
     }
 
@@ -74,7 +74,7 @@ public class CommunicatorActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_configure_ip) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Enter new IP address, currently: " + inetAddress.toString());
+            builder.setTitle("Enter new IP address, currently: " + inetAddress.toString() + ":"+ port);
 
             final EditText input = new EditText(this);
             input.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -85,7 +85,8 @@ public class CommunicatorActivity extends AppCompatActivity {
                 public void onClick(DialogInterface dialog, int which) {
                     try {
                         inetAddress= InetAddress.getByName(input.getText().toString());
-                        tcpSwitch.setChecked(false);
+                        TextView serverStatus = findViewById(R.id.serverStatus);
+                        serverStatus.setText("Sending messages to " + inetAddress +":" + port);
                     } catch (Exception e) {
                         Toast t = Toast.makeText(getApplicationContext(),
                                 "Opps! You have entered an incorrect address.",
@@ -116,15 +117,11 @@ public class CommunicatorActivity extends AppCompatActivity {
         switch (requestCode) {
             case 1: {
                 if (resultCode == RESULT_OK && null != data) {
+                    SendTextTask task = new SendTextTask();
                     ArrayList<String> text = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     System.out.println(text);
-                    ByteBuffer message = ByteBuffer.wrap(text.get(0).getBytes());
-                    try {
-                        tcpSocket.getChannel().write(message);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    task.execute(text.get(0));
                     voiceText.setText(text.get(0));
                 }
                 break;
@@ -136,13 +133,6 @@ public class CommunicatorActivity extends AppCompatActivity {
     View.OnClickListener talkListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            if(!tcpSocket.isConnected()){
-                Toast t = Toast.makeText(getApplicationContext(),
-                        "You must connect to the server first!",
-                        Toast.LENGTH_SHORT);
-                t.show();
-                return;
-            }
             Intent intent = new Intent(
                     RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
@@ -161,31 +151,38 @@ public class CommunicatorActivity extends AppCompatActivity {
         }
     };
 
-    CompoundButton.OnCheckedChangeListener switchListener = new Switch.OnCheckedChangeListener(){
+
+
+    //Async task to send text to server
+    private class SendTextTask extends AsyncTask<String, Void, String>{
+
         @Override
-        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-            if(!b){
-                //try to disconnect
-                try {
-                    tcpSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    compoundButton.setChecked(true);
-                    return;
-                }
-                compoundButton.setText(String.format("disconnected from server %s",inetAddress.toString()));
-            } else{
-                //try to connect to server
-                try {
-                    tcpSocket.connect(new InetSocketAddress(inetAddress, port));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    compoundButton.setChecked(false);
-                    return;
-                }
-                compoundButton.setText(String.format("connected to server %s",inetAddress.toString()));
+        protected String doInBackground(String... strings) {
+
+            try {
+                Socket socket = new Socket();
+                socket.connect(new InetSocketAddress(inetAddress, port),1000    );
+
+                OutputStream outputStream = socket.getOutputStream();
+                outputStream.write(strings[0].getBytes());
+
+                socket.close();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "There was a problem sending your message: " + e.getMessage();
             }
+
+            return "Your message was successfully sent to the server";
         }
 
-    };
+        @Override
+        protected void onPostExecute(String result) {
+            Toast t = Toast.makeText(getApplicationContext(),
+                    result,
+                    Toast.LENGTH_LONG);
+            t.show();
+        }
+    }
+
 }
