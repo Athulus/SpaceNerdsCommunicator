@@ -89,7 +89,7 @@ public class CommunicatorActivity extends AppCompatActivity {
                         serverStatus.setText("Sending messages to " + inetAddress +":" + port);
                     } catch (Exception e) {
                         Toast t = Toast.makeText(getApplicationContext(),
-                                "Opps! You have entered an incorrect address.",
+                                "Oops! You have entered an incorrect address.",
                                 Toast.LENGTH_SHORT);
                         t.show();
                     }
@@ -143,7 +143,7 @@ public class CommunicatorActivity extends AppCompatActivity {
                 voiceText.setText("");
             } catch (ActivityNotFoundException a) {
                 Toast t = Toast.makeText(getApplicationContext(),
-                        "Opps! Your device doesn't support Speech to Text",
+                        "Oops! Your device doesn't support Speech to Text",
                         Toast.LENGTH_SHORT);
                 t.show();
             }
@@ -160,11 +160,13 @@ public class CommunicatorActivity extends AppCompatActivity {
         protected String doInBackground(String... strings) {
 
             try {
+                String newline = "\n";
                 Socket socket = new Socket();
                 socket.connect(new InetSocketAddress(inetAddress, port),1000    );
 
                 OutputStream outputStream = socket.getOutputStream();
                 outputStream.write(strings[0].getBytes());
+                outputStream.write(newline.getBytes());
 
                 socket.close();
 
