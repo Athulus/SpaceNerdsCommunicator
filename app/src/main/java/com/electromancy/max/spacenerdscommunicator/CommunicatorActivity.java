@@ -105,6 +105,39 @@ public class CommunicatorActivity extends AppCompatActivity {
             builder.show();
 
             return true;
+        } else if(id == R.id.upatePortAction){
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Enter new port number, currently: " + inetAddress.toString() + ":"+ port);
+
+            final EditText input = new EditText(this);
+            input.setInputType(InputType.TYPE_CLASS_NUMBER);
+            builder.setView(input);
+
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    try {
+                        port= Integer.parseInt(input.getText().toString());
+                        TextView serverStatus = findViewById(R.id.serverStatus);
+                        serverStatus.setText("Sending messages to " + inetAddress +":" + port);
+                    } catch (Exception e) {
+                        Toast t = Toast.makeText(getApplicationContext(),
+                                "Oops! You have entered an incorrect port.",
+                                Toast.LENGTH_SHORT);
+                        t.show();
+                    }
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+
+            builder.show();
+
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
